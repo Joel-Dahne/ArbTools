@@ -1,0 +1,9 @@
+name = "ArbToolsNemo"
+uuid = "b924a24f-a3e8-4690-a07e-a6aad93e09f6"
+authors = ["Joel Dahne <joel@dahne.eu>"]
+version = "0.1.0"
+
+[deps]
+ArbNumerics = "7e558dbc-694d-5a72-987c-6f4ebed21442"
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
