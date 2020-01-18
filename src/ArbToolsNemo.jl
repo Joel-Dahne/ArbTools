@@ -5,6 +5,7 @@ export maximumpoly
 
 export isolateroots
 
+using Nemo
 using ArbNumerics
 using Printf
 using RecipesBase
