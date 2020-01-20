@@ -1,88 +1,26 @@
-@testset "isolateroots-ball" begin
-    f = cos
-    a = ArbReal(0)
-    b = ArbReal(10)
-    roots = [ArbReal(π)/2, 3ArbReal(π)/2, 5ArbReal(π)/2]
-    found, flags = isolateroots(f, a, b, evaltype = :ball)
+@testset "isolateroots" begin
+    prec = 128
+    RR = RealField(prec)
 
-    @test length(found) == length(roots) && length(flags) == length(roots)
-    @test !any(flags)
-    @test all(ArbToolsNemo.contains(setinterval(found[i]...), roots[i]) for i in 1:length(roots))
+    problems = [(cos, 0, 10, [RR(π)/2, 3RR(π)/2, 5RR(π)/2]),
+                (x -> (x - 1)*(x - 2)*(x - 3), 0, 5, [1, 2, 3]),
+                (x -> exp(x) - 1, -eps(), 5, [0])]
 
-    f = x -> (x - 1)*(x - 2)*(x - 3)
-    a = ArbReal(0)
-    b = ArbReal(5)
-    roots = ArbReal.([1, 2, 3])
+    for (f, a, b, roots) in problems
+        a = RR(a)
+        b = RR(b)
+        roots = RR.(roots)
 
-    found, flags = isolateroots(f, a, b, evaltype = :ball)
+        for evaltype in (:ball, :taylor)
+            found, flags = isolateroots(f, a, b, evaltype = evaltype)
 
-    @test length(found) == length(roots) && length(flags) == length(roots)
-    @test !any(flags)
-    @test all(ArbToolsNemo.contains(setinterval(found[i]...), roots[i]) for i in 1:length(roots))
-
-    f = x -> exp(x) - 1
-    a = ArbReal(0)
-    b = ArbReal(5)
-    roots = ArbReal.([0])
-
-    found, flags = isolateroots(f, a, b, evaltype = :ball)
-
-    @test length(found) == length(roots) && length(flags) == length(roots)
-    @test !any(flags)
-    @test all(ArbToolsNemo.contains(setinterval(found[i]...), roots[i]) for i in 1:length(roots))
-end
-
-@testset "isolateroots-taylor" begin
-    f! = (poly, x, n) -> begin
-        ArbToolsNemo.unsafe_store_ArbRealPtr!(poly, cos(x), 1)
-        if n > 1
-            ArbToolsNemo.unsafe_store_ArbRealPtr!(poly, -sin(x), 2)
+            @test length(found) == length(roots) && length(flags) == length(roots)
+            if evaltype == :ball
+                @test !any(flags)
+            else
+                @test all(flags)
+            end
+            @test all(contains(ArbToolsNemo.setinterval(found[i]...), roots[i]) for i in 1:length(roots))
         end
-
-        nothing
     end
-    a = ArbReal(0)
-    b = ArbReal(10)
-    roots = [ArbReal(π)/2, 3ArbReal(π)/2, 5ArbReal(π)/2]
-    found, flags = isolateroots(f!, a, b, evaltype = :taylor)
-
-    @test length(found) == length(roots) && length(flags) == length(roots)
-    @test all(flags)
-    @test all(ArbToolsNemo.contains(setinterval(found[i]...), roots[i]) for i in 1:length(roots))
-
-    f! = (poly, x, n) -> begin
-        ArbToolsNemo.unsafe_store_ArbRealPtr!(poly, (x - 1)*(x - 2)*(x - 3), 1)
-        if n > 1
-            ArbToolsNemo.unsafe_store_ArbRealPtr!(poly, 3x^2 - 12x + 11, 2)
-        end
-
-        nothing
-    end
-    a = ArbReal(0)
-    b = ArbReal(5)
-    roots = ArbReal.([1, 2, 3])
-
-    found, flags = isolateroots(f!, a, b, evaltype = :taylor)
-
-    @test length(found) == length(roots) && length(flags) == length(roots)
-    @test all(flags)
-    @test all(ArbToolsNemo.contains(setinterval(found[i]...), roots[i]) for i in 1:length(roots))
-
-    f! = (poly, x, n) -> begin
-        ArbToolsNemo.unsafe_store_ArbRealPtr!(poly, exp(x) - 1, 1)
-        if n > 1
-            ArbToolsNemo.unsafe_store_ArbRealPtr!(poly, exp(x), 2)
-        end
-
-        nothing
-    end
-    a = ArbReal(0)
-    b = ArbReal(5)
-    roots = ArbReal.([0])
-
-    found, flags = isolateroots(f!, a, b, evaltype = :taylor)
-
-    @test length(found) == length(roots) && length(flags) == length(roots)
-    @test all(flags)
-    @test all(ArbToolsNemo.contains(setinterval(found[i]...), roots[i]) for i in 1:length(roots))
 end

@@ -1,38 +1,26 @@
-function maximumpoly(poly::Ptr{ArbReal}, n::Int,
-                     xinterval::Tuple{ArbReal, ArbReal};
+function maximumpoly(poly::arb_poly,
+                     (lower, upper)::Tuple{arb, arb};
                      absmax::Bool = false)
-    lower, upper = xinterval
-    x = setinterval(xinterval...)
+    x = setinterval(lower, upper)
     maybeabs = ifelse(absmax, abs, identity)
 
     # Enclose the zeros of the derivative of the polynomial
-    deriv = _arb_vec_init(n)
+    deriv = derivative(poly)
 
-    _arb_poly_derivative(deriv, poly, n, workingprecision(x))
-
-    f! = (y, x, k) -> begin
-        if k == 1
-            unsafe_store_ArbRealPtr!(y, _arb_poly_evaluate(deriv, n, x), 1)
-        elseif k == 2
-            (a, b) = ArbTools._arb_poly_evaluate2(deriv, n, x)
-            unsafe_store_ArbRealPtr!(y, a, 1)
-            unsafe_store_ArbRealPtr!(y, b, 2)
-        end
-        nothing
-    end
-
-    roots = isolateroots(f!, lower, upper, evaltype = :taylor)[1]
-
-    _arb_vec_clear(deriv, n)
+    roots = isolateroots(deriv, lower, upper)[1]
 
     # Evaluate the polynomial on the zeros and the endpoints and take
     # the maximum
-    m = max(maybeabs(_arb_poly_evaluate(poly, n, lower)),
-            maybeabs(_arb_poly_evaluate(poly, n, upper)))
+    m = max(maybeabs(evaluate(poly, lower)),
+            maybeabs(evaluate(poly, upper)))
 
+    # FIXME: If lower and upper are not tight then it can happen that
+    # we find a root which is contained in x but not in the true
+    # interval. If the maximum occurs at this root we would get wrong
+    # results.
     for root in roots
         m = max(m,
-                maybeabs(_arb_poly_evaluate(poly, n, setinterval(root...))))
+                maybeabs(evaluate(poly, setinterval(root...))))
     end
 
     m

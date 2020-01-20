@@ -1,7 +1,7 @@
-struct MaximumState{P}
+struct MaximumState
     iteration::Int
     numintervals::Int
-    maxenclosure::ArbReal{P}
+    maxenclosure::arb
     metadata::Dict
 end
 

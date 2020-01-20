@@ -1,5 +1,5 @@
 using ArbToolsNemo
-using ArbNumerics
+using Nemo
 using Test
 
 include("enclosemaximum.jl")

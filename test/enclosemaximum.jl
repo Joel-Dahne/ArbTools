@@ -1,32 +1,34 @@
-@testset "standard" begin
+@testset "continuous" begin
     prec = 128
-    atol = sqrt(eps(ArbReal{prec}))
-    rtol = sqrt(eps(ArbReal{prec}))
+    RR = RealField(prec)
+    atol = sqrt(eps())
+    rtol = sqrt(eps())
 
-    a = ArbReal(0, bits = prec)
-    b = ArbReal(1, bits = prec)
+    problems = [(sin, 0, 1, sin(RR(1))),
+                (sinpi, 0, 1, 1),
+                (x -> 2x + 1, 0, 1, 3),
+                (x -> -(x + 1e-1)^3 , 0, 1, 0)]
 
-    enclosure = enclosemaximum(sin, a, b, atol = atol, rtol = rtol)
-    value = sin(b)
-    @test ArbToolsNemo.contains(enclosure, value)
-    @test radius(value) < atol || radius(value)/abs(value) < rtol
+    for (f, a, b, value) in problems
+        a = RR(a)
+        b = RR(b)
+        value = RR(value)
 
-    enclosure = enclosemaximum(sinpi, a, b, atol = atol, rtol = rtol)
-    value = ArbReal(1)
-    @test ArbToolsNemo.contains(enclosure, value)
-    @test radius(value) < atol || radius(value)/abs(value) < rtol
+        for evaltype in (:ball, :taylor)
+            enclosure = enclosemaximum(f, a, b, atol = atol, rtol = rtol, evaltype = evaltype)
 
-    enclosure = enclosemaximum(x -> 2x + 1, a, b, atol = atol, rtol = rtol)
-    value = 2b + 1
-    @test ArbToolsNemo.contains(enclosure, value)
-    @test radius(value) < atol || radius(value)/abs(value) < rtol
+            @test contains(enclosure, value)
+            @test radius(value) < atol || radius(value)/abs(value) < rtol
+        end
+    end
 end
 
 @testset "unbounded" begin
     prec = 128
+    RR = RealField(prec)
 
-    a = ArbReal(0, bits = prec)
-    b = ArbReal(1, bits = prec)
+    a = RR(0)
+    b = RR(1)
 
     @test isnan(enclosemaximum(tanpi, a, b))
     @test isnan(enclosemaximum(x -> 1/x, a, b))
@@ -34,50 +36,39 @@ end
 
 @testset "discontinuous" begin
     prec = 128
-    atol = sqrt(eps(ArbReal{prec}))
-    rtol = sqrt(eps(ArbReal{prec}))
+    RR = RealField(prec)
+    atol = sqrt(eps())
+    rtol = sqrt(eps())
 
-    a = ArbReal(0, bits = prec)
-    b = ArbReal(1, bits = prec)
+    a = RR(0)
+    b = RR(1)
 
     enclosure = enclosemaximum(a, b, atol = atol, rtol = rtol) do x
-        if x < ArbReal(0.5)
+        if x < 0.5
             return sin(x)
-        elseif x > ArbReal(0.5)
+        elseif x > 0.5
             return cos(x)
         end
 
-        ArbToolsNemo.setunion(sin(x), cos(x))
+        setunion(sin(x), cos(x))
     end
-    value = sin(ArbReal(0.5))
+    value = cos(RR(0.5))
 
-    @test isnan(enclosemaximum(tanpi, a, b))
-    @test isnan(enclosemaximum(x -> 1/x, a, b))
+    @test contains(enclosure, value)
+    @test radius(value) < atol || radius(value)/abs(value) < rtol
 end
 
 @testset "taylor" begin
     prec = 128
-    atol = sqrt(eps(ArbReal{prec}))
-    rtol = sqrt(eps(ArbReal{prec}))
+    RR = RealField(prec)
+    atol = sqrt(eps())
+    rtol = sqrt(eps())
 
-    a = ArbReal(0, bits = prec)
-    b = ArbReal(1, bits = prec)
+    a = RR(0)
+    b = RR(1)
 
-    sin!(poly, x, n) = begin
-        xpoly = ArbToolsNemo._arb_vec_init(2)
-        ArbToolsNemo.unsafe_store_ArbRealPtr!(xpoly, x, 1)
-        ArbToolsNemo.unsafe_store_ArbRealPtr!(xpoly, ArbReal(1), 2)
-
-        ccall((:_arb_poly_sin_series, :libarb), Cvoid, (Ptr{ArbReal}, Ptr{ArbReal},
-                                                        Clong, Clong, Clong),
-              poly, xpoly, 2, n, workingprecision(x))
-
-        ArbToolsNemo._arb_vec_clear(xpoly, 2)
-
-        return
-    end
-    enclosure = enclosemaximum(sin!, a, b, atol = atol, rtol = rtol, evaltype = :taylor)
+    enclosure = enclosemaximum(sin, a, b, atol = atol, rtol = rtol, evaltype = :taylor)
     value = sin(b)
-    @test ArbToolsNemo.contains(enclosure, value)
+    @test contains(enclosure, value)
     @test radius(value) < atol || radius(value)/abs(value) < rtol
 end

@@ -1,22 +1,16 @@
-"""
-ball: y = f(x::ArbReal)::ArbReal
-
-taylor: f!(y::Ptr{ArbReal}, x::ArbReal, n::Integer)
-
-"""
-function evalmaximum(f, intervals::Vector{Tuple{T, T}};
+function evalmaximum(f, intervals::Vector{Tuple{arb, arb}};
                      evaltype = :ball,
                      n = 4,
-                     absmax = false) where {T}
-    evals = Vector{Tuple{T, T}}(undef, length(intervals))
+                     absmax = false)
+    evals = Vector{Tuple{arb, arb}}(undef, length(intervals))
     if evaltype == :ball
         maybeabs = ifelse(absmax, abs, identity)
         for i in 1:length(intervals)
-            evals[i] = interval(maybeabs(f(setinterval(intervals[i]...))))
+            evals[i] = getinterval(maybeabs(f(setinterval(intervals[i]...))))
         end
     elseif evaltype == :taylor
         for i in 1:length(intervals)
-            evals[i] = interval(maximumtaylor(f, intervals[i], n, absmax = absmax))
+            evals[i] = getinterval(maximumtaylor(f, intervals[i], n, absmax = absmax))
         end
     end
 
@@ -24,21 +18,22 @@ function evalmaximum(f, intervals::Vector{Tuple{T, T}};
 end
 
 function enclosemaximum(f,
-                        a::T,
-                        b::T;
+                        a::arb,
+                        b::arb;
                         absmax = false,
                         evaltype = :ball,
                         n = 4,
-                        atol = sqrt(eps(T)),
-                        rtol = sqrt(eps(T)),
+                        # FIXME: This should be epsilon in the precision of the input parameters
+                        atol = sqrt(eps()),
+                        rtol = sqrt(eps()),
                         maxevals = 10^3,
                         store_trace = false,
                         show_trace = false,
-                        extended_trace = false) where {T <: ArbReal}
+                        extended_trace = false)
     @assert isfinite(a) && isfinite(b) && a < b
 
     intervals = [(a, b)]
-    maxenclosure = setinterval(-inf(T), inf(T))
+    maxenclosure = setinterval(neginf(a), posinf(a))
     E = radius(maxenclosure)
     numevals = 0
     iteration = 0
@@ -48,11 +43,7 @@ function enclosemaximum(f,
         print(trace)
     end
 
-    onehalf = ArbReal(0.5)
-
-    # FIXME: The implementation of <= and >= in ArbNumerics are not
-    # correct. If they are fixed then change < to <=.
-    while !(E < atol) && !(E/abs(maxenclosure) < rtol) && numevals <= maxevals
+    while !(E < atol) && !(E/abs(maxenclosure) <= rtol) && numevals <= maxevals
         iteration += 1
 
         # Lower and upper bound maximum on each interval
@@ -60,8 +51,8 @@ function enclosemaximum(f,
         numevals += length(intervals)
 
         # Find global lower and upper bound for maximum
-        maxlower = -inf(T)
-        maxupper = -inf(T)
+        maxlower = neginf(a)
+        maxupper = neginf(a)
         for (lower, upper) in evals
             if isfinite(lower) && !(lower < maxlower)
                 maxlower = max(maxlower, lower)
@@ -78,7 +69,7 @@ function enclosemaximum(f,
         nextintervals = Vector{eltype(intervals)}()
         for i in 1:length(intervals)
             if !(evals[i][2] < maxlower)
-                midpoint = onehalf*(intervals[i][1] + intervals[i][2])
+                midpoint = 0.5*(intervals[i][1] + intervals[i][2])
                 push!(nextintervals, (intervals[i][1], midpoint))
                 push!(nextintervals, (midpoint, intervals[i][2]))
             end
@@ -98,8 +89,6 @@ function enclosemaximum(f,
         intervals = nextintervals
         E = radius(maxenclosure)
     end
-
-    #println("$n: $numevals    $maxenclosure \n\n\n\n\n\n\n\n\n\n\n\n")
 
     if store_trace
         return maxenclosure, trace

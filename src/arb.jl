@@ -1,115 +1,115 @@
-"""
-This file contains functions related to Arb which should probably be
-in the ArbNumerics package but currently is not.
-"""
+function isnan(x::arb)
+    x_mid = ccall((:arb_mid_ptr, Nemo.libarb), Ptr{Nemo.arf_struct}, (Ref{arb}, ), x)
+    0 != ccall(("arf_is_nan", Nemo.libarb), Cint, (Ref{Nemo.arf_struct},), x_mid)
+end
 
-"""
-    contains(x, y)
+function inf(x::arb)
+    y = parent(x)(0)
+    ccall(("arb_pos_inf", Nemo.libarb), Cvoid, (Ref{arb},), y)
+    y
+end
 
-    Returns true iff the given number (or ball) y is contained in the
-    interval represented by x.
+function posinf(x::arb)
+    y = parent(x)(0)
+    ccall(("arb_pos_inf", Nemo.libarb), Cvoid, (Ref{arb},), y)
+    y
+end
 
-    If x contains NaN, this function always returns nonzero (as it could
-    represent anything, and in particular could represent all the points
-    included in y). If y contains NaN and x does not, it always returns
-    zero.
-"""
-function contains(x::ArbReal, y::ArbReal)
-    0 != ccall(ArbNumerics.@libarb(arb_contains), Cint, (Ref{ArbReal}, Ref{ArbReal}), x, y)
+function neginf(x::arb)
+    y = parent(x)(0)
+    ccall(("arb_neg_inf", Nemo.libarb), Cvoid, (Ref{arb},), y)
+    y
 end
 
 """
-    overlaps(x, y)
-
-    Returns nonzero iff x and y have some point in common. If either x
-    or y contains NaN, this function always returns nonzero (as a NaN
-    could be anything, it could in particular contain any number that
-    is included in the other operand). """
-
-#        int arb_overlaps(const arb_t x, const arb_t y)
+    max(x::arb, y::arb)
+> Return a ball containing the maximum of x and y.
 """
-    setunion(x, y)
-
-    Returns a ball containing both x and y.
-"""
-function setunion(x::ArbReal{P}, y::ArbReal{P}) where {P}
-    z = ArbReal{P}()
-    ccall(ArbNumerics.@libarb(arb_union), Cvoid,
-          (Ref{ArbReal}, Ref{ArbReal}, Ref{ArbReal}), z, x, y)
+function Base.max(x::arb, y::arb)
+    z = parent(x)()
+    ccall((:arb_max, Nemo.libarb), Nothing,
+          (Ref{arb}, Ref{arb}, Ref{arb}, Int), z, x, y, parent(x).prec)
     return z
 end
 
 """
-    setintersection(x, y)
-
-    If x and y overlap according to arb_overlaps(), then returns a
-    ball containing the intersection of x and y. Otherwise NaN is
-    returned.
+    setinterval(x::arb, y::arb)
+> Return a ball containing the interval [x,y].
 """
-function setintersection(x::ArbReal{P}, y::ArbReal{P}) where {P}
-    z = ArbReal{P}()
-    res = ccall(ArbNumerics.@libarb(arb_intersection), Cint,
-                (Ref{ArbReal}, Ref{ArbReal}, Ref{ArbReal}), z, x, y)
-    if res != 0
-        return z
-    else
-        return ArbReal{P}(NaN)
+function setinterval(x::arb, y::arb)
+    z = parent(x)()
+    x_mid = ccall((:arb_mid_ptr, Nemo.libarb), Ptr{Nemo.arf_struct}, (Ref{arb}, ), x)
+    y_mid = ccall((:arb_mid_ptr, Nemo.libarb), Ptr{Nemo.arf_struct}, (Ref{arb}, ), y)
+    ccall((:arb_set_interval_arf, Nemo.libarb), Cvoid,
+          (Ref{arb}, Ptr{Nemo.arf_struct}, Ptr{Nemo.arf_struct}, Int),
+          z, x_mid, y_mid, x.parent.prec)
+    return z
+end
+
+"""
+    getinterval(x::arb)
+    getinterval(::Type{arb}, x::arb)
+> Return an interval [a,b] containing the ball x.
+"""
+function getinterval(x::arb)
+    getinterval(arb, x)
+end
+
+function getinterval(::Type{arb}, x::arb)
+    a, b = x.parent(), x.parent()
+    a_mid = ccall((:arb_mid_ptr, Nemo.libarb), Ptr{Nemo.arf_struct}, (Ref{arb}, ), a)
+    b_mid = ccall((:arb_mid_ptr, Nemo.libarb), Ptr{Nemo.arf_struct}, (Ref{arb}, ), b)
+    ccall((:arb_get_interval_arf, Nemo.libarb), Cvoid,
+          (Ptr{Nemo.arf_struct}, Ptr{Nemo.arf_struct}, Ref{arb}, Clong),
+          a_mid, b_mid, x, x.parent.prec)
+
+    (a, b)
+end
+
+"""
+    getinterval(::Type{BigFloat}, x::arb)
+> Return an interval [a,b] containing the ball x.
+"""
+function getinterval(::Type{BigFloat}, x::arb)
+    a, b = BigFloat(), BigFloat()
+    ccall((:arb_get_interval_mpfr, Nemo.libarb), Cvoid,
+          (Ref{BigFloat}, Ref{BigFloat}, Ref{arb}),
+          a, b, x)
+
+    (a, b)
+end
+
+"""
+    convert(::Type{BigFloat}, x::arb)
+> Return the midpoint of x as a BigFloat rounded down to the current
+  precision of BigFloat.
+"""
+function BigFloat(x::arb)
+    GC.@preserve x begin
+        t = ccall((:arb_mid_ptr, Nemo.libarb), Ptr{Nemo.arf_struct}, (Ref{arb}, ), x)
+        # 4 == round to nearest
+        m = BigFloat()
+        ccall((:arf_get_mpfr, Nemo.libarb), Float64,
+              (Ref{BigFloat}, Ptr{Nemo.arf_struct}, Base.MPFR.MPFRRoundingMode),
+              m, t, Base.MPFR.MPFRRoundNearest)
     end
+    return m
 end
 
 """
-    _arb_vec_init(n)
-
-    Returns a pointer to an array of n initialized arb_struct entries.
+    convert(::Type{BigFloat}, x::arb)
+> Return the midpoint of x as a BigFloat rounded down to the current
+  precision of BigFloat.
 """
-function _arb_vec_init(n::Int)
-    ccall((:_arb_vec_init, :libarb), Ptr{ArbReal}, (Int,), n)
+function Base.convert(::Type{BigFloat}, x::arb)
+    return BigFloat(x)
 end
 
 """
-    _arb_vec_clear(v, n)
-
-    Clears an array of n initialized arb_struct entries.
+    rel_accuracy_bits(x::arb)
+> Compute the relatively accuracy of the ball `x` in bits.
 """
-function _arb_vec_clear(v::Ptr{ArbReal}, n::Int)
-    ccall((:_arb_vec_clear, :libarb), Cvoid, (Ptr{ArbReal}, Int), v, n)
-end
-
-function unsafe_load_ArbRealPtr(ptr::Ptr{ArbReal}, i::Int)
-    res = ArbReal(0)
-    ccall((:arb_set, :libarb), Cvoid, (Ref{ArbReal}, Ref{ArbReal}),
-          res, ptr + (i - 1)*sizeof(ArbReal))
-
-    return res
-end
-
-function unsafe_store_ArbRealPtr!(ptr::Ptr{ArbReal}, value::ArbReal, i::Int)
-    ccall((:arb_set, :libarb), Cvoid, (Ref{ArbReal}, Ref{ArbReal}),
-          ptr + (i - 1)*sizeof(ArbReal), value)
-end
-
-function _arb_poly_evaluate(f::Ptr{ArbReal}, len::Integer, x::ArbReal)
-    res = zero(x)
-    ccall((:_arb_poly_evaluate, :libarb), Cvoid, (Ref{ArbReal}, Ptr{ArbReal}, Clong,
-                                                   Ref{ArbReal}, Clong),
-          res, f, len, x, workingprecision(x))
-
-    return res
-end
-
-function _arb_poly_evaluate2(f::Ptr{ArbReal}, len::Integer, x::ArbReal)
-    y = zero(x)
-    z = zero(x)
-    ccall((:_arb_poly_evaluate2, :libarb), Cvoid, (Ref{ArbReal}, Ref{ArbReal},
-                                                   Ptr{ArbReal}, Clong,
-                                                   Ref{ArbReal}, Clong),
-          y, z, f, len, x, workingprecision(x))
-
-    return (y, z)
-end
-
-function _arb_poly_derivative(res::Ptr{ArbReal}, poly::Ptr{ArbReal}, len::Int, prec::Int)
-    ccall((:_arb_poly_derivative, :libarb), Cvoid, (Ptr{ArbReal}, Ptr{ArbReal},
-                                                    Clong, Clong),
-          res, poly, len, prec)
+function rel_accuracy_bits(x::arb)
+    ccall(("arb_rel_accuracy_bits", Nemo.libarb), Int,
+          (Ref{arb},), x)
 end
