@@ -113,3 +113,14 @@ function rel_accuracy_bits(x::arb)
     ccall(("arb_rel_accuracy_bits", Nemo.libarb), Int,
           (Ref{arb},), x)
 end
+
+"""
+    atan(x::arb, y::arb)
+> Return atan(x, y) = arg(x + yi).
+"""
+function atan(x::arb, y::arb)
+    z = parent(x)()
+    ccall((:arb_atan2, Nemo.libarb), Nothing,
+          (Ref{arb}, Ref{arb}, Ref{arb}, Int), z, x, y, parent(x).prec)
+    return z
+end
