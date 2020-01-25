@@ -336,6 +336,10 @@ for T in [Integer, fmpz, fmpq, Float64, BigFloat, arb, fmpz_poly, fmpq_poly, arb
 
         *(x::$T, y::arb_series) = y * x
 
+        /(x::arb_series, y::$T) = x / arb_series(parent(x.poly)(y))
+
+        /(x::$T, y::arb_series) = arb_series(parent(y.poly)(x)) / y
+
         ^(x::arb_series, y::$T) = x^arb_series(parent(x.poly)(y))
 
         ^(x::$T, y::arb_series) = arb_series(parent(y.poly)(x))^y
@@ -353,6 +357,10 @@ end
 *(x::arb_series, y::Rational{T}) where T <: Union{Int, BigInt} = x * arb_series(parent(x.poly)(y))
 
 *(x::Rational{T}, y::arb_series) where T <: Union{Int, BigInt} = y * x
+
+/(x::arb_series, y::Rational{T}) where T <: Union{Int, BigInt} = x / arb_series(parent(x.poly)(y))
+
+/(x::Rational{T}, y::arb_series) where T <: Union{Int, BigInt} = arb_series(parent(y.poly)(x)) / y
 
 ^(x::arb_series, y::Rational{T}) where T <: Union{Int, BigInt} = x^arb_series(parent(x.poly)(y))
 
