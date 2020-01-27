@@ -33,6 +33,17 @@ function Base.max(x::arb, y::arb)
 end
 
 """
+    min(x::arb, y::arb)
+> Return a ball containing the minimum of x and y.
+"""
+function Base.min(x::arb, y::arb)
+    z = parent(x)()
+    ccall((:arb_min, Nemo.libarb), Nothing,
+          (Ref{arb}, Ref{arb}, Ref{arb}, Int), z, x, y, parent(x).prec)
+    return z
+end
+
+"""
     setinterval(x::arb, y::arb)
 > Return a ball containing the interval [x,y].
 """
