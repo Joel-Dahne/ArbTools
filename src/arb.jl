@@ -1,3 +1,11 @@
+function Base.eps(x::arb)
+    parent(x)(2)^(-(prec(parent(x)) - 1))
+end
+
+function Base.eps(RR::ArbField)
+    RR(2)^(-(prec(RR) - 1))
+end
+
 function isnan(x::arb)
     x_mid = ccall((:arb_mid_ptr, Nemo.libarb), Ptr{Nemo.arf_struct}, (Ref{arb}, ), x)
     0 != ccall(("arf_is_nan", Nemo.libarb), Cint, (Ref{Nemo.arf_struct},), x_mid)
