@@ -3,6 +3,15 @@ function maximumtaylor(f, (a, b), n; absmax = false)
     maybeabs = ifelse(absmax, abs, identity)
     PP = ArbPolyRing(parent(x), :x)
 
+    # Compute the rest term of the Taylor expansion
+    y = f(arb_series(PP([x, parent(x)(1)]), n))
+
+    restterm = (x - midpoint(x))^(n - 1)*y[n - 1]
+
+    # If the rest term is not finite the result always be not finite
+    if !isfinite(restterm)
+        return restterm
+    end
 
     # Compute the Taylor polynomial at the midpoint of x
     y = f(arb_series(PP([midpoint(x), parent(x)(1)]), n))
@@ -12,10 +21,6 @@ function maximumtaylor(f, (a, b), n; absmax = false)
     res = maximumpoly(y.poly, (a - mid, b - mid), absmax = absmax)
     p = res
 
-    # Compute the rest term of the Taylor expansion
-    y = f(arb_series(PP([x, parent(x)(1)]), n))
-
-    restterm = (x - midpoint(x))^(n - 1)*y[n - 1]
     res += restterm
 
     return res
