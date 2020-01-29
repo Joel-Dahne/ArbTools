@@ -37,13 +37,17 @@ function enclosemaximum(f,
     E = radius(maxenclosure)
     numevals = 0
     iteration = 0
+    imprecise_input = false
 
     trace = MaximumTrace()
     if show_trace
         print(trace)
     end
 
-    while !(E < atol) && !(E/abs(maxenclosure) <= rtol) && numevals <= maxevals
+    while (!(E < atol)
+           && !(E/abs(maxenclosure) <= rtol)
+           && numevals <= maxevals
+           && !imprecise_input)
         iteration += 1
 
         # Lower and upper bound maximum on each interval
@@ -87,6 +91,15 @@ function enclosemaximum(f,
                 show_trace)
 
         intervals = nextintervals
+
+        # If using Taylor series and no substantial improvement is
+        # made from previous iteration this usually hints at working
+        # with to low precision
+        if evaltype == :taylor && isfinite(maxenclosure) && radius(maxenclosure) > 0.8*E
+            @warn "Maximum likely needs to be computed with higher precision than $(prec(parent(a)))"
+            imprecise_input = true
+        end
+
         E = radius(maxenclosure)
     end
 
