@@ -143,3 +143,18 @@ function atan(x::arb, y::arb)
           (Ref{arb}, Ref{arb}, Ref{arb}, Int), z, x, y, parent(x).prec)
     return z
 end
+
+function arb_dump(x::arb)
+    cstr = ccall((:arb_dump_str, Nemo.libarb), Ptr{UInt8}, (Ref{arb},),
+                 x)
+
+    unsafe_string(cstr)
+end
+
+function arb_load_dump(str::String, r::ArbField)
+    x = r()
+    err = ccall((:arb_load_str, Nemo.libarb), Int32, (Ref{arb}, Ptr{UInt8}),
+                x, str)
+    err == 0 || Throw(error("Invalid string $str"))
+    x
+end
