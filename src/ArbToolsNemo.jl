@@ -13,6 +13,8 @@ import Base: length, show, inv, sqrt, log, log1p, atan, asin, acos,
 import Nemo: rsqrt, tanpi, gamma, lgamma, rgamma, digamma, compose,
     derivative, integral
 
+export setinterval, getinterval
+
 export arb_series
 
 export enclosemaximum
