@@ -29,6 +29,7 @@ function enclosemaximum(f,
                         maxevals = 10^3,
                         store_trace = false,
                         show_trace = false,
+                        callback = nothing,
                         extended_trace = false)
     @assert isfinite(a) && isfinite(b) && a < b
 
@@ -88,7 +89,8 @@ function enclosemaximum(f,
         update!(trace,
                 MaximumState(iteration, length(intervals), maxenclosure, dt),
                 store_trace,
-                show_trace)
+                show_trace,
+                callback)
 
         intervals = nextintervals
 

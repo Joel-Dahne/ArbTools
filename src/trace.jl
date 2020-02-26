@@ -34,12 +34,16 @@ Base.push!(t::MaximumTrace, s::MaximumState) = push!(t.states, s)
 function update!(tr::MaximumTrace,
                  st::MaximumState,
                  store_trace::Bool,
-                 show_trace::Bool)
+                 show_trace::Bool,
+                 callback = nothing)
     if store_trace
         push!(tr, st)
     end
     if show_trace
         show(st)
+    end
+    if !isnothing(callback)
+        callback(st)
     end
     return
 end
