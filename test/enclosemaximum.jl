@@ -7,7 +7,7 @@
     problems = [(sin, 0, 1, sin(RR(1))),
                 (sinpi, 0, 1, 1),
                 (x -> 2x + 1, 0, 1, 3),
-                (x -> -(x + 1e-1)^3 , 0, 1, 0)]
+                (x -> -(x + 1e-1)^3 , 0, 1, -1e-3)]
 
     for (f, a, b, value) in problems
         a = RR(a)

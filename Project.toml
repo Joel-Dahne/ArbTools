@@ -1,5 +1,5 @@
-name = "ArbToolsNemo"
-uuid = "b924a24f-a3e8-4690-a07e-a6aad93e09f6"
+name = "ArbTools"
+uuid = "3c5857ab-c5d3-4a72-9f97-b009bfc1bcb8"
 authors = ["Joel Dahne <joel@dahne.eu>"]
 version = "0.1.0"
 

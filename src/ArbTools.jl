@@ -1,4 +1,4 @@
-module ArbToolsNemo
+module ArbTools
 
 using Nemo
 using Printf
@@ -11,7 +11,7 @@ import Base: length, show, inv, sqrt, log, log1p, atan, asin, acos,
     div, sincos, isnan
 
 import Nemo: rsqrt, tanpi, gamma, lgamma, rgamma, digamma, compose,
-    derivative, integral
+    derivative, integral, zeta
 
 export setinterval, getinterval
 

@@ -20,7 +20,7 @@
             else
                 @test all(flags)
             end
-            @test all(contains(ArbToolsNemo.setinterval(found[i]...), roots[i]) for i in 1:length(roots))
+            @test all(contains(ArbTools.setinterval(found[i]...), roots[i]) for i in 1:length(roots))
         end
     end
 end

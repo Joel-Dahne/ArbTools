@@ -235,6 +235,17 @@ function atan(y::arb_series,
     return z
 end
 
+function zeta(s::arb_series,
+              a::arb,
+              n::Integer = length(s))
+    y = arb_series(parent(s.poly)(), n)
+    ccall((:arb_poly_zeta_series, Nemo.libarb), Nothing,
+          (Ref{arb_poly}, Ref{arb_poly}, Ref{arb}, Int32, Int, Int),
+          y.poly, s.poly, a, 0, n, prec(parent(s.poly)))
+    return y
+end
+                 (:zeta, "arb_poly_zeta_series")
+
 ###############################################################################
 #
 #   Promotions
