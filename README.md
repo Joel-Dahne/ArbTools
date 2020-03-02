@@ -1,9 +1,10 @@
 # ArbTools.jl
 
-This package implements some tools for working with rigorous numerics.
-It relies on the [Arb C Library](http://arblib.org/index.html) for all
-computations and uses [Nemo](https://github.com/wbhart/Nemo.jl) as the
-basic interface between Arb and Julia.
+This package implements some tools for working with rigorous numerics
+in Julia. It relies on the [Arb C
+Library](http://arblib.org/index.html) for all computations and uses
+[Nemo](https://github.com/wbhart/Nemo.jl) as the basic interface
+between Arb and Julia.
 
 The package adds some extra functionality to the `arb` type from Nemo,
 it defines a new type `arb_series` for working with Taylor series of
@@ -20,4 +21,9 @@ The package is not in the general Julia repository but can be
 installed through the package manager with
 ``` julia
 pkg> add https://github.com/Joel-Dahne/ArbTools.jl
+```
+
+To see if it works correctly you can run the tests with
+``` julia
+pkg> test ArbTools
 ```
