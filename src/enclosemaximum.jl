@@ -98,11 +98,14 @@ function enclosemaximum(f,
         # made from previous iteration this usually hints at working
         # with to low precision
         if evaltype == :taylor && isfinite(maxenclosure) && radius(maxenclosure) > 0.8*E
-            @warn "Maximum likely needs to be computed with higher precision than $(prec(parent(a)))"
             imprecise_input = true
         end
 
         E = radius(maxenclosure)
+    end
+
+    if imprecise_input && !(E < atol || E/abs(maxenclosure) <= rtol || numevals <= maxevals)
+        @warn "Maximum likely needs to be computed with higher precision than $(prec(parent(a)))"
     end
 
     if store_trace
