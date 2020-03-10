@@ -104,7 +104,7 @@ function enclosemaximum(f,
         E = radius(maxenclosure)
     end
 
-    if imprecise_input && !(E < atol || E/abs(maxenclosure) <= rtol || numevals <= maxevals)
+    if imprecise_input && !(E < atol || E/abs(maxenclosure) <= rtol || !(numevals <= maxevals))
         @warn "Maximum likely needs to be computed with higher precision than $(prec(parent(a)))"
     end
 
