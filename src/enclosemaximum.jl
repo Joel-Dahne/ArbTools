@@ -38,6 +38,7 @@ function enclosemaximum(f,
     E = radius(maxenclosure)
     numevals = 0
     iteration = 0
+    imprecise_input_last_iteration = false
     imprecise_input = false
 
     trace = MaximumTrace()
@@ -98,7 +99,12 @@ function enclosemaximum(f,
         # made from previous iteration this usually hints at working
         # with to low precision
         if evaltype == :taylor && isfinite(maxenclosure) && radius(maxenclosure) > 0.8*E
-            imprecise_input = true
+            if imprecise_input_last_iteration
+                imprecise_input = true
+            end
+            imprecise_input_last_iteration = true
+        else
+            imprecise_input_last_iteration = false
         end
 
         E = radius(maxenclosure)
