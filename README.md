@@ -23,7 +23,7 @@ installed through the package manager with
 pkg> add https://github.com/Joel-Dahne/ArbTools.jl
 ```
 
-To see if it works correctly you can run the tests with
+To see if it (some) things work correctly you can run the tests with
 ``` julia
 pkg> test ArbTools
 ```
