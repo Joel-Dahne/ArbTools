@@ -4,9 +4,9 @@ function maximumtaylor(f, (a, b), n; absmax = false)
     PP = ArbPolyRing(parent(x), :x)
 
     # Compute the rest term of the Taylor expansion
-    y = f(arb_series(PP([x, parent(x)(1)]), n))
+    y = f(arb_series(PP([x, parent(x)(1)]), n + 1))
 
-    restterm = (x - midpoint(x))^(n - 1)*y[n - 1]
+    restterm = (x - midpoint(x))^n*y[n]
 
     # If the rest term is not finite the result always be not finite
     if !isfinite(restterm)
