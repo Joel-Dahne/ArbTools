@@ -166,3 +166,8 @@ function format_arb(x::arb, digits::Int)
     ccall((:flint_free, Nemo.libflint), Nothing, (Ptr{UInt8},), cstr)
     return str
 end
+
+function add_error!(x::arb, error::arb)
+    ccall((:arb_add_error, Nemo.libarb), Nothing, (Ref{arb}, Ref{arb}), x, error)
+    return x
+end
