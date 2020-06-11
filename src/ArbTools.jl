@@ -23,6 +23,7 @@ export maximumpoly
 export isolateroots
 
 include("arb.jl")
+include("acb.jl")
 include("arb_series.jl")
 
 include("trace.jl")
@@ -31,5 +32,7 @@ include("maximumtaylor.jl")
 include("maximumpoly.jl")
 
 include("isolateroots.jl")
+
+include("integrate.jl")
 
 end # module
