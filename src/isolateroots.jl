@@ -37,6 +37,29 @@ function isuniqueroot(f,
     return false, true
 end
 
+function refine_root(f,
+                     a::arb,
+                     b::arb)
+    root = setinterval(a, b)
+    PP = ArbPolyRing(parent(root), :x)
+
+    iterations = 1
+    while iterations < 5# && rel_accuracy_bits(root) < 20
+        @show iterations
+        iterations += 1
+        y = f(midpoint(root))
+        dy = f(arb_series(PP([root, parent(root)(1)])))[1]
+
+        root = setintersection(midpoint(root) - y/dy, root)
+        @show root
+        if isnan(root)
+            return (a, b)
+        end
+    end
+
+    return getinterval(root)
+end
+
 function refine_root(poly::arb_poly,
                      (a, b)::Tuple{arb, arb})
     root = setinterval(a, b)
@@ -122,10 +145,7 @@ function isolateroots(f,
 
                 if unique && refine
                     # Try to refine the root
-                    (lower, upper) = refine_root(f, lower, upper,
-                                                 evaltype = evaltype,
-                                                 atol = atol,
-                                                 rtol = rtol)
+                    (lower, upper) = refine_root(f, lower, upper)
                 end
             end
 
