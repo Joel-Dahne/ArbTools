@@ -171,3 +171,43 @@ function add_error!(x::arb, error::arb)
     ccall((:arb_add_error, Nemo.libarb), Nothing, (Ref{arb}, Ref{arb}), x, error)
     return x
 end
+
+function abs_ubound(x::arb)
+    res = parent(x)()
+    GC.@preserve x begin
+        t = ccall((:arb_mid_ptr, Nemo.libarb), Ptr{Nemo.arf_struct}, (Ref{arb}, ), res)
+        ccall((:arb_get_abs_ubound_arf, Nemo.libarb), Nothing, (Ptr{Nemo.arf_struct}, Ref{arb}, Int),
+              t, x, parent(x).prec)
+    end
+    return res
+end
+
+function abs_lbound(x::arb)
+    res = parent(x)()
+    GC.@preserve x begin
+        t = ccall((:arb_mid_ptr, Nemo.libarb), Ptr{Nemo.arf_struct}, (Ref{arb}, ), res)
+        ccall((:arb_get_abs_lbound_arf, Nemo.libarb), Nothing, (Ptr{Nemo.arf_struct}, Ref{arb}, Int),
+              t, x, parent(x).prec)
+    end
+    return res
+end
+
+function ubound(x::arb)
+    res = parent(x)()
+    GC.@preserve x begin
+        t = ccall((:arb_mid_ptr, Nemo.libarb), Ptr{Nemo.arf_struct}, (Ref{arb}, ), res)
+        ccall((:arb_get_ubound_arf, Nemo.libarb), Nothing, (Ptr{Nemo.arf_struct}, Ref{arb}, Int),
+              t, x, parent(x).prec)
+    end
+    return res
+end
+
+function lbound(x::arb)
+    res = parent(x)()
+    GC.@preserve x begin
+        t = ccall((:arb_mid_ptr, Nemo.libarb), Ptr{Nemo.arf_struct}, (Ref{arb}, ), res)
+        ccall((:arb_get_lbound_arf, Nemo.libarb), Nothing, (Ptr{Nemo.arf_struct}, Ref{arb}, Int),
+              t, x, parent(x).prec)
+    end
+    return res
+end
