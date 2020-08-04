@@ -44,17 +44,23 @@ function refine_root(f,
     PP = ArbPolyRing(parent(root), :x)
 
     iterations = 1
-    while iterations < 5# && rel_accuracy_bits(root) < 20
-        @show iterations
+    max_iterations = 5div(prec(parent(root)), 64)
+    previous_precision = -typemin(Int)
+    current_precision = rel_accuracy_bits(root)
+    # Perform a maximum of max_iterations iterations or until the
+    # precision no longer increases
+    while iterations < 20 && previous_precision < current_precision
         iterations += 1
         y = f(midpoint(root))
         dy = f(arb_series(PP([root, parent(root)(1)])))[1]
 
         root = setintersection(midpoint(root) - y/dy, root)
-        @show root
         if isnan(root)
             return (a, b)
         end
+
+        previous_precision = current_precision
+        current_precision = rel_accuracy_bits(root)
     end
 
     return getinterval(root)
