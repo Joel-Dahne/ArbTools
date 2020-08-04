@@ -3,6 +3,7 @@ module ArbTools
 using Nemo
 using Printf
 using RecipesBase
+using Colors
 
 ArbReal = arb
 
@@ -25,6 +26,7 @@ export isolateroots
 include("arb.jl")
 include("acb.jl")
 include("arb_series.jl")
+include("acb_series.jl")
 
 include("trace.jl")
 include("enclosemaximum.jl")

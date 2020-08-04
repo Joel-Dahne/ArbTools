@@ -48,9 +48,14 @@ function update!(tr::MaximumTrace,
     return
 end
 
-@recipe function f(st::MaximumState)
+@recipe function f(st::MaximumState;
+                   level = nothing)
     xs = [Float64(interval[j]) for j in 1:2, interval in st.metadata["intervals"]]
-    ys = [[Float64(eval[j]) for eval in st.metadata["evaluations"]] for j in 1:2]
+    if isnothing(level)
+        ys = [[Float64(eval[j]) for eval in st.metadata["evaluations"]] for j in 1:2]
+    else
+        ys = [[level + j for _ in st.metadata["evaluations"]] for j in 1:2]
+    end
     seriescolor --> :blue
     label := ""
     fillrange := ys[2]'
@@ -76,6 +81,7 @@ end
     for i in 1:N
         @series begin
             seriescolor := cm[i + coloroffset]
+            level := i
             states[i]
         end
     end
