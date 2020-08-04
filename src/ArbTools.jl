@@ -26,7 +26,6 @@ export isolateroots
 include("arb.jl")
 include("acb.jl")
 include("arb_series.jl")
-include("acb_series.jl")
 
 include("trace.jl")
 include("enclosemaximum.jl")
