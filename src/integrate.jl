@@ -29,7 +29,7 @@ function acb_calc_func_wrap_analytic(res::Ptr{acb}, x::Ptr{acb}, param::Ptr{Noth
 end
 
 acb_calc_func_wrap_analytic_c() = @cfunction(acb_calc_func_wrap_analytic, Cint,
-        (Ptr{acb}, Ptr{acb}, Ptr{Nothing}, Int, Int))
+                                             (Ptr{acb}, Ptr{acb}, Ptr{Nothing}, Int, Int))
 
 const ARB_CALC_SUCCESS = UInt(0)
 const ARB_CALC_NO_CONVERGENCE = UInt(2)
@@ -43,59 +43,63 @@ function integrate(C::AcbField, F, a, b;
                    use_heap::Int = 0,
                    verbose::Int = 0,
                    checkanalytic = false)
+    opts = acb_calc_integrate_opts(deg_limit, eval_limit, depth_limit,
+                                   Cint(use_heap), Cint(verbose))
 
-   opts = acb_calc_integrate_opts(deg_limit, eval_limit, depth_limit,
-                                  Cint(use_heap), Cint(verbose))
+    lower = C(a)
+    upper = C(b)
 
-   lower = C(a)
-   upper = C(b)
+    cgoal = 0
 
-   cgoal = 0
+    if rel_tol === -1.0
+        cgoal = prec(C)
+    else
+        t = BigFloat(rel_tol, RoundDown)
+        cgoal_clong = Ref{Clong}()
+        ccall((:mpfr_get_d_2exp, :libmpfr), Float64,
+              (Ref{Clong}, Ref{BigFloat}, Cint),
+              cgoal_clong, t, Base.MPFR.MPFRRoundDown)
+        cgoal = -Int(cgoal_clong[]) + 1
+    end
 
-   if rel_tol === -1.0
-      cgoal = prec(C)
-   else
-      t = BigFloat(rel_tol, RoundDown)
-      cgoal_clong = Ref{Clong}()
-      ccall((:mpfr_get_d_2exp, :libmpfr), Float64, (Ref{Clong}, Ref{BigFloat}, Cint), cgoal_clong, t, Base.MPFR.to_mpfr(RoundDown))
-      cgoal = -Int(cgoal_clong[]) + 1
-   end
+    ctol = mag_struct(0, 0)
+    ccall((:mag_init, Nemo.libarb), Nothing, (Ref{mag_struct},), ctol)
 
-   ctol = mag_struct(0, 0)
-   ccall((:mag_init, Nemo.libarb), Nothing, (Ref{mag_struct},), ctol)
+    if abs_tol === -1.0
+        ccall((:mag_set_ui_2exp_si, Nemo.libarb), Nothing, (Ref{mag_struct}, UInt, Int), ctol, 1, -prec(C))
+    else
+        t = BigFloat(abs_tol, RoundDown)
+        expo = Ref{Clong}()
+        d = ccall((:mpfr_get_d_2exp, :libmpfr), Float64,
+                  (Ref{Clong}, Ref{BigFloat}, Cint),
+                  expo, t, Base.MPFR.MPFRRoundDown)
+        ccall((:mag_set_d, Nemo.libarb), Nothing, (Ref{mag_struct}, Float64), ctol, d)
+        ccall((:mag_mul_2exp_si, Nemo.libarb), Nothing,
+              (Ref{mag_struct}, Ref{mag_struct}, Int), ctol, ctol, Int(expo[]))
+    end
 
-   if abs_tol === -1.0
-      ccall((:mag_set_ui_2exp_si, Nemo.libarb), Nothing, (Ref{mag_struct}, UInt, Int), ctol, 1, -prec(C))
-   else
-      t = BigFloat(abs_tol, RoundDown)
-      expo = Ref{Clong}()
-      d = ccall((:mpfr_get_d_2exp, :libmpfr), Float64, (Ref{Clong}, Ref{BigFloat}, Cint), expo, t, Base.MPFR.to_mpfr(RoundDown))
-      ccall((:mag_set_d, Nemo.libarb), Nothing, (Ref{mag_struct}, Float64), ctol, d)
-      ccall((:mag_mul_2exp_si, Nemo.libarb), Nothing, (Ref{mag_struct}, Ref{mag_struct}, Int), ctol, ctol, Int(expo[]))
-   end
+    res = C()
 
-   res = C()
+    status = ccall((:acb_calc_integrate, Nemo.libarb), UInt,
+                   (Ref{acb},                       #res
+                    Ptr{Nothing},                      #func
+                    Any,                            #params
+                    Ref{acb},                       #a
+                    Ref{acb},                       #b
+                    Int,                            #rel_goal
+                    Ref{mag_struct},                #abs_tol
+                    Ref{acb_calc_integrate_opts},   #opts
+                    Int),
+                   res,
+                   ifelse(checkanalytic, acb_calc_func_wrap_analytic_c(), acb_calc_func_wrap_c()),
+                   F, lower, upper, cgoal, ctol, opts, prec(C))
 
-   status = ccall((:acb_calc_integrate, Nemo.libarb), UInt,
-                  (Ref{acb},                       #res
-                   Ptr{Nothing},                      #func
-                   Any,                            #params
-                   Ref{acb},                       #a
-                   Ref{acb},                       #b
-                   Int,                            #rel_goal
-                   Ref{mag_struct},                #abs_tol
-                   Ref{acb_calc_integrate_opts},   #opts
-                   Int),
-                  res,
-                  ifelse(checkanalytic, acb_calc_func_wrap_analytic_c(), acb_calc_func_wrap_c()),
-                  F, lower, upper, cgoal, ctol, opts, prec(C))
+    ccall((:mag_clear, Nemo.libarb), Nothing, (Ref{mag_struct},), ctol)
 
-   ccall((:mag_clear, Nemo.libarb), Nothing, (Ref{mag_struct},), ctol)
-
-   if status == ARB_CALC_SUCCESS
-      nothing
-   elseif status == ARB_CALC_NO_CONVERGENCE
-      @warn "Integration did converge"
-   end
-   return res
+    if status == ARB_CALC_SUCCESS
+        nothing
+    elseif status == ARB_CALC_NO_CONVERGENCE
+        @warn "Integration did converge"
+    end
+    return res
 end
