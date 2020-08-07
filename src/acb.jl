@@ -4,3 +4,10 @@ function real_abs(x::acb; analytic = false)
           y, x, analytic, parent(x).prec)
     return y
 end
+
+"""
+    rel_accuracy_bits(x)
+> Compute the relatively accuracy of the ball `x` in bits.
+"""
+rel_accuracy_bits(x::acb) = ccall(("arb_rel_accuracy_bits", Nemo.libarb), Int,
+                                  (Ref{acb},), x)

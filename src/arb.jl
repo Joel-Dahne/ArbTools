@@ -125,7 +125,7 @@ function Base.convert(::Type{BigFloat}, x::arb)
 end
 
 """
-    rel_accuracy_bits(x::arb)
+    rel_accuracy_bits(x)
 > Compute the relatively accuracy of the ball `x` in bits.
 """
 function rel_accuracy_bits(x::arb)
