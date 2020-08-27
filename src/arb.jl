@@ -57,11 +57,11 @@ end
 """
 function setinterval(x::arb, y::arb)
     z = parent(x)()
-    x_mid = ccall((:arb_mid_ptr, Nemo.libarb), Ptr{Nemo.arf_struct}, (Ref{arb}, ), x)
-    y_mid = ccall((:arb_mid_ptr, Nemo.libarb), Ptr{Nemo.arf_struct}, (Ref{arb}, ), y)
+    x_lower = ccall((:arb_mid_ptr, Nemo.libarb), Ptr{Nemo.arf_struct}, (Ref{arb}, ), lbound(x))
+    y_upper = ccall((:arb_mid_ptr, Nemo.libarb), Ptr{Nemo.arf_struct}, (Ref{arb}, ), ubound(y))
     ccall((:arb_set_interval_arf, Nemo.libarb), Cvoid,
           (Ref{arb}, Ptr{Nemo.arf_struct}, Ptr{Nemo.arf_struct}, Int),
-          z, x_mid, y_mid, x.parent.prec)
+          z, x_lower, y_upper, x.parent.prec)
     return z
 end
 
