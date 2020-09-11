@@ -20,6 +20,8 @@ end
 function enclosemaximum(f,
                         a::arb,
                         b::arb;
+                        # A priori computed lower bound of maximum
+                        lower_bound::arb = neginf(a),
                         absmax = false,
                         evaltype = :ball,
                         n = 4,
@@ -69,7 +71,14 @@ function enclosemaximum(f,
             end
         end
 
+        if maxupper < lower_bound
+            @error "given lower bound is larger than maximum"
+            return parent(a)(NaN)
+        end
+
         maxenclosure = setinterval(maxlower, maxupper)
+
+        maxlower = max(maxlower, lower_bound)
 
         # Split intervals where the maximum could be located
         nextintervals = Vector{eltype(intervals)}()
