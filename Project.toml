@@ -11,4 +11,4 @@ RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
 
 [compat]
 Nemo = "0.17"
-RecipesBase = "0.8.0"
+RecipesBase = "0.8.0, 1.0"
