@@ -1,9 +1,9 @@
 function Base.eps(x::arb)
-    parent(x)(2)^(-(prec(parent(x)) - 1))
+    parent(x)(2)^(-(precision(parent(x)) - 1))
 end
 
 function Base.eps(RR::ArbField)
-    RR(2)^(-(prec(RR) - 1))
+    RR(2)^(-(precision(RR) - 1))
 end
 
 function isnan(x::arb)
@@ -36,7 +36,7 @@ end
 function Base.max(x::arb, y::arb)
     z = parent(x)()
     ccall((:arb_max, Nemo.libarb), Nothing,
-          (Ref{arb}, Ref{arb}, Ref{arb}, Int), z, x, y, parent(x).prec)
+          (Ref{arb}, Ref{arb}, Ref{arb}, Int), z, x, y, precision(parent(x)))
     return z
 end
 
@@ -47,7 +47,7 @@ end
 function Base.min(x::arb, y::arb)
     z = parent(x)()
     ccall((:arb_min, Nemo.libarb), Nothing,
-          (Ref{arb}, Ref{arb}, Ref{arb}, Int), z, x, y, parent(x).prec)
+          (Ref{arb}, Ref{arb}, Ref{arb}, Int), z, x, y, precision(parent(x)))
     return z
 end
 
@@ -61,7 +61,7 @@ function setinterval(x::arb, y::arb)
     y_upper = ccall((:arb_mid_ptr, Nemo.libarb), Ptr{Nemo.arf_struct}, (Ref{arb}, ), ubound(y))
     ccall((:arb_set_interval_arf, Nemo.libarb), Cvoid,
           (Ref{arb}, Ptr{Nemo.arf_struct}, Ptr{Nemo.arf_struct}, Int),
-          z, x_lower, y_upper, x.parent.prec)
+          z, x_lower, y_upper, precision(parent(x)))
     return z
 end
 
@@ -80,7 +80,7 @@ function getinterval(::Type{arb}, x::arb)
     b_mid = ccall((:arb_mid_ptr, Nemo.libarb), Ptr{Nemo.arf_struct}, (Ref{arb}, ), b)
     ccall((:arb_get_interval_arf, Nemo.libarb), Cvoid,
           (Ptr{Nemo.arf_struct}, Ptr{Nemo.arf_struct}, Ref{arb}, Clong),
-          a_mid, b_mid, x, x.parent.prec)
+          a_mid, b_mid, x, precision(parent(x)))
 
     (a, b)
 end
@@ -140,7 +140,7 @@ end
 function atan(x::arb, y::arb)
     z = parent(x)()
     ccall((:arb_atan2, Nemo.libarb), Nothing,
-          (Ref{arb}, Ref{arb}, Ref{arb}, Int), z, x, y, parent(x).prec)
+          (Ref{arb}, Ref{arb}, Ref{arb}, Int), z, x, y, precision(parent(x)))
     return z
 end
 
@@ -177,7 +177,7 @@ function abs_ubound(x::arb)
     GC.@preserve x begin
         t = ccall((:arb_mid_ptr, Nemo.libarb), Ptr{Nemo.arf_struct}, (Ref{arb}, ), res)
         ccall((:arb_get_abs_ubound_arf, Nemo.libarb), Nothing, (Ptr{Nemo.arf_struct}, Ref{arb}, Int),
-              t, x, parent(x).prec)
+              t, x, precision(parent(x)))
     end
     return res
 end
@@ -187,7 +187,7 @@ function abs_lbound(x::arb)
     GC.@preserve x begin
         t = ccall((:arb_mid_ptr, Nemo.libarb), Ptr{Nemo.arf_struct}, (Ref{arb}, ), res)
         ccall((:arb_get_abs_lbound_arf, Nemo.libarb), Nothing, (Ptr{Nemo.arf_struct}, Ref{arb}, Int),
-              t, x, parent(x).prec)
+              t, x, precision(parent(x)))
     end
     return res
 end
@@ -197,7 +197,7 @@ function ubound(x::arb)
     GC.@preserve x begin
         t = ccall((:arb_mid_ptr, Nemo.libarb), Ptr{Nemo.arf_struct}, (Ref{arb}, ), res)
         ccall((:arb_get_ubound_arf, Nemo.libarb), Nothing, (Ptr{Nemo.arf_struct}, Ref{arb}, Int),
-              t, x, parent(x).prec)
+              t, x, precision(parent(x)))
     end
     return res
 end
@@ -207,7 +207,7 @@ function lbound(x::arb)
     GC.@preserve x begin
         t = ccall((:arb_mid_ptr, Nemo.libarb), Ptr{Nemo.arf_struct}, (Ref{arb}, ), res)
         ccall((:arb_get_lbound_arf, Nemo.libarb), Nothing, (Ptr{Nemo.arf_struct}, Ref{arb}, Int),
-              t, x, parent(x).prec)
+              t, x, precision(parent(x)))
     end
     return res
 end

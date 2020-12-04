@@ -44,7 +44,7 @@ function refine_root(f,
     PP = ArbPolyRing(parent(root), :x)
 
     iterations = 1
-    max_iterations = 5div(prec(parent(root)), 64)
+    max_iterations = 5div(precision(parent(root)), 64)
     previous_precision = -typemin(Int)
     current_precision = rel_accuracy_bits(root)
     # Perform a maximum of max_iterations iterations or until the
@@ -94,14 +94,14 @@ function refine_root(poly::arb_poly,
 
         ccall(("_arb_poly_newton_convergence_factor", Nemo.libarb), Cvoid,
               (Ptr{Nemo.arf_struct}, Ptr{arb}, Int, Ref{arb}, Int),
-              convergence_factor, poly.coeffs, length(poly), convergence_interval, parent(root).prec)
+              convergence_factor, poly.coeffs, length(poly), convergence_interval, precision(parent(root)))
 
         # FIXME: The extra bits used in the computation should be
         # looked over. I just chose it randomly.
         ccall(("_arb_poly_newton_refine_root", Nemo.libarb), Cvoid,
               (Ref{arb}, Ptr{arb}, Int, Ref{arb}, Ref{arb}, Ref{Nemo.arf_struct}, Int, Int),
               root, poly.coeffs, length(poly), root, convergence_interval,
-              convergence_factor, div(parent(root).prec, 4), parent(root).prec)
+              convergence_factor, div(precision(parent(root)), 4), precision(parent(root)))
     end
 
     if a < root

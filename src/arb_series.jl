@@ -109,7 +109,7 @@ for (s, f) in unary_methods
             y = arb_series(parent(x.poly)(), n)
             ccall(($f, Nemo.libarb), Nothing,
                   (Ref{arb_poly}, Ref{arb_poly}, Int, Int),
-                  y.poly, x.poly, n, prec(parent(x.poly)))
+                  y.poly, x.poly, n, precision(parent(x.poly)))
             return y
         end
     end
@@ -132,7 +132,7 @@ for (s, f) in operator_methods
             z = arb_series(parent(x.poly)(), n)
             ccall(($f, Nemo.libarb), Nothing,
                   (Ref{arb_poly}, Ref{arb_poly}, Ref{arb_poly}, Int, Int),
-                  z.poly, x.poly, y.poly, n, prec(parent(x.poly)))
+                  z.poly, x.poly, y.poly, n, precision(parent(x.poly)))
             return z
         end
     end
@@ -158,7 +158,7 @@ for (s, f) in binary_methods
             z = arb_series(parent(x.poly)(), n)
             ccall(($f, Nemo.libarb), Nothing,
                   (Ref{arb_poly}, Ref{arb_poly}, Ref{arb_poly}, Int, Int),
-                  z.poly, x.poly, y.poly, n, prec(parent(x.poly)))
+                  z.poly, x.poly, y.poly, n, precision(parent(x.poly)))
             return z
         end
     end
@@ -176,7 +176,7 @@ for (s, f) in unary_length_preserving_methods
             y = arb_series(parent(x.poly)(), length(x))
             ccall(($f, Nemo.libarb), Nothing,
                   (Ref{arb_poly}, Ref{arb_poly}, Int),
-                  y.poly, x.poly, prec(parent(x.poly)))
+                  y.poly, x.poly, precision(parent(x.poly)))
             return y
         end
     end
@@ -192,7 +192,7 @@ function derivative(x::arb_series,
     y = arb_series(parent(x.poly)(), n)
     ccall(("arb_poly_derivative", Nemo.libarb), Nothing,
           (Ref{arb_poly}, Ref{arb_poly}, Int),
-          y.poly, x.poly, prec(parent(x.poly)))
+          y.poly, x.poly, precision(parent(x.poly)))
     return y
 end
 
@@ -201,7 +201,7 @@ function integral(x::arb_series,
     y = arb_series(parent(x.poly)(), n)
     ccall(("arb_poly_integral", Nemo.libarb), Nothing,
           (Ref{arb_poly}, Ref{arb_poly}, Int),
-          y.poly, x.poly, prec(parent(x.poly)))
+          y.poly, x.poly, precision(parent(x.poly)))
     return y
 end
 
@@ -216,7 +216,7 @@ function sincos(x::arb_series,
     z = arb_series(parent(x.poly)(), n)
     ccall((:arb_poly_sin_cos_series, Nemo.libarb), Nothing,
           (Ref{arb_poly}, Ref{arb_poly}, Ref{arb_poly}, Int, Int),
-          y.poly, z.poly, x.poly, n, prec(parent(x.poly)))
+          y.poly, z.poly, x.poly, n, precision(parent(x.poly)))
     return (y, z)
 end
 
@@ -241,7 +241,7 @@ function zeta(s::arb_series,
     y = arb_series(parent(s.poly)(), n)
     ccall((:arb_poly_zeta_series, Nemo.libarb), Nothing,
           (Ref{arb_poly}, Ref{arb_poly}, Ref{arb}, Int32, Int, Int),
-          y.poly, s.poly, a, 0, n, prec(parent(s.poly)))
+          y.poly, s.poly, a, 0, n, precision(parent(s.poly)))
     return y
 end
                  (:zeta, "arb_poly_zeta_series")
