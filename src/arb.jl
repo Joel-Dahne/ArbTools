@@ -160,7 +160,7 @@ function arb_load_dump(str::String, r::ArbField)
 end
 
 function format_arb(x::arb, digits::Int)
-    cstr = ccall((:arb_get_str, :libarb), Ptr{UInt8}, (Ref{arb}, Int, UInt),
+    cstr = ccall((:arb_get_str, Nemo.libarb), Ptr{UInt8}, (Ref{arb}, Int, UInt),
                  x, digits, UInt(0))
     str = unsafe_string(cstr)
     ccall((:flint_free, Nemo.libflint), Nothing, (Ptr{UInt8},), cstr)
