@@ -5,11 +5,11 @@ function evalmaximum(f, intervals::Vector{Tuple{arb, arb}};
     evals = Vector{Tuple{arb, arb}}(undef, length(intervals))
     if evaltype == :ball
         maybeabs = ifelse(absmax, abs, identity)
-        for i in 1:length(intervals)
+        Threads.@threads for i in 1:length(intervals)
             evals[i] = getinterval(maybeabs(f(setinterval(intervals[i]...))))
         end
     elseif evaltype == :taylor
-        for i in 1:length(intervals)
+        Threads.@threads for i in 1:length(intervals)
             evals[i] = getinterval(maximumtaylor(f, intervals[i], n, absmax = absmax))
         end
     end
