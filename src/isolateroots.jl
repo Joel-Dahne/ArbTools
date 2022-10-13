@@ -225,7 +225,7 @@ function isolateroots(poly::arb_poly,
                         (lower, upper) = refine_root(poly, (lower, upper))
                         push!(found, (lower, upper))
                         push!(flags, true)
-                    elseif !(ylower > 0 && yupper > 0 || ylower < 0 && yupper < 0) &&
+                    elseif !(ylower > 0 && yupper > 0 || ylower < 0 && yupper < 0)
                         if (radius(x) < atol) || (radius(x)/x < rtol)
                             push!(found, (lower, upper))
                             push!(flags, false)
